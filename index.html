@@ -1,233 +1,371 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot for Symptoms</title>
-    <style>
+    <title id="page-title">Dharani</title>
+    <style type="text/css">
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
         }
 
-        .chat-container {
-            width: 350px;
+        #ai-assistant {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        #symptoms .symptom {
+            display: block;
+            margin-bottom: 10px;
+            padding: 10px 20px;
             background-color: #fff;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .chat-header {
-            background-color: #3366ff;
-            color: white;
-            padding: 10px;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .chat-messages {
-            max-height: 300px;
-            overflow-y: scroll;
-            padding: 10px;
-        }
-
-        .message {
-            margin: 5px 0;
-            padding: 5px;
-            border-radius: 5px;
-        }
-
-        .user {
-            background-color: #3366ff;
-            color: white;
-            text-align: right;
-        }
-
-        .bot {
-            background-color: #66ff66;
-            color: black;
-        }
-
-        .input-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            padding: 8px;
             border: 1px solid #ccc;
-            border-radius: 3px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
         }
 
-        button {
-            background-color: #3366ff;
+        #symptoms .symptom:hover {
+            background-color: #eee;
+        }
+
+        #symptoms .symptom.chosen {
+            background-color: orange;
+        }
+
+        #chosen-symptoms {
+            margin-bottom: 20px;
+        }
+
+        #chosen-symptoms ul {
+            padding: 0;
+        }
+
+        #submit-button {
+            display: block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 8px 15px;
-            border-radius: 3px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        #submit-button:hover {
+            background-color: #45a049;
+        }
+
+        #dialog-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        #dialog-box {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        #dialog-message {
+            margin-bottom: 20px;
+        }
+
+        #dialog-ok-button {
+            padding: 10px 20px;
+            background-color: orange;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
             cursor: pointer;
         }
+
+        #language-dropdown {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        #select-language-button {
+            padding: 10px 20px;
+            background-color: orange;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
     </style>
 </head>
+
 <body>
-    <div class="chat-container">
-        <div class="chat-header">Chatbot for Symptoms</div>
-        <div class="chat-messages" id="chatbox">
-            <div class="message bot">Hello! How can I assist you today?</div>
+    <h1 id="page-title" style="text-align: center;">Dharani</h1>
+
+    <div id="ai-assistant">
+        <button id="select-language-button" onclick="showLanguageDialog()">Select Language</button>
+
+        <p id="symptoms-text">What symptoms are you facing?</p>
+        <div id="symptoms">
+            <button type="button" class="symptom" id="fever">Fever</button>
+            <button type="button" class="symptom" id="cough">Cough</button>
+            <button type="button" class="symptom" id="runny-nose">Runny nose</button>
+            <button type="button" class="symptom" id="sore-throat">Sore throat</button>
+            <button type="button" class="symptom" id="headache">Headache</button>
+            <button type="button" class="symptom" id="body-aches">Body aches</button>
+            <button type="button" class="symptom" id="diarrhea">Diarrhea</button>
+            <button type="button" class="symptom" id="vomiting">Vomiting</button>
+            <button type="button" class="symptom" id="rash">Rash</button>
+            <button type="button" class="symptom" id="other">Other</button>
         </div>
-        <div class="input-container">
-            <input type="text" id="userInput" placeholder="Type your symptom...">
-            <button onclick="sendMessage()">Send</button>
+
+        <div id="chosen-symptoms">
+            <h2 id="chosen-symptoms-title">Chosen Symptoms</h2>
+            <ul></ul>
+        </div>
+
+        <button id="submit-button" onclick="submitSymptoms()" id="submit-button">Submit</button>
+
+        <div id="dialog-overlay"></div>
+        <div id="dialog-box">
+            <div id="dialog-message">
+                <label for="language">Select Language:</label>
+                <select id="language" onchange="translatePage()">
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी</option>
+                    <option value="bn">বাংলা</option>
+                    <option value="te">తెలుగు</option>
+                    <option value="mr">मराठी</option>
+                    <option value="ta">தமிழ்</option>
+                    <option value="ur">اردو</option>
+ 
+                </select>
+            </div>
+            <button id="dialog-ok-button" onclick="hideDialog()">OK</button>
         </div>
     </div>
 
     <script>
-        function sendMessage() {
-            const userInput = document.getElementById("userInput").value;
-            const chatbox = document.getElementById("chatbox");
-            const userMessage = document.createElement("div");
-            userMessage.className = "message user";
-            userMessage.innerText = userInput;
-            chatbox.appendChild(userMessage);
-            const botMessage = document.createElement("div");
-            botMessage.className = "message bot";
-            const lowerUserInput = userInput.toLowerCase();
+        function showLanguageDialog() {
+            document.getElementById('dialog-overlay').style.display = 'block';
+            document.getElementById('dialog-box').style.display = 'block';
+        }
 
-            if (lowerUserInput.includes("don't") || lowerUserInput.includes("do not")) {
-                botMessage.innerText = "Well I am happy to hear about that.";
-            }
-            else if (lowerUserInput.includes("fever")) {
-                botMessage.innerHTML = `
-                    <strong style="color: red;">For fever:</strong>
-                    <br>- <strong style="color: red;">Primary Prescription:</strong> Acetaminophen every 4 to 6 hours or ibuprofen every 6 to 8 hours.
-                    <br>- <strong style="color: red;">Secondary Prescription:</strong> Stamaril Vaccine 1's, Apollo Pharmacy Oval Thermometer Large, 1 Count, Malidens Injection 100 ml, Vicks Cough Drops Menthol Lozenges, 25 count, Vicks Ginger Cough Drops, 20 Count, Vicks Menthol Cough Drops, 20 Count, Apollo Pharmacy Digital Flexible Thermometer, 1 Count
-                `;
-            }
-            else if (lowerUserInput.includes("aches") || lowerUserInput.includes("headaches") || lowerUserInput.includes("headache") || lowerUserInput.includes("pain")) {
-                botMessage.innerHTML = `
-                    <strong style="color: red;">For aches, pains, and headaches:</strong>
-                    <br>- <strong style="color: red;">Primary Prescription:</strong> Acetaminophen. DO NOT exceed 3,000 mg in one day.
-                    <br>- <strong style="color: red;">Secondary Prescription:</strong> Clearwax Ear Drops 10 ml, Otogesic Ear Drops 5 ml, Otogesic Ear Drops 10 ml, Ciplox Eye/Ear Drop 5 ml
-                `;
-            } else if (lowerUserInput.includes("cold") || lowerUserInput.includes("sore throat") || lowerUserInput.includes("cough")) {
-                botMessage.innerHTML = `
-                    <strong style="color: red;">For cold, sore throat, and cough:</strong>
-                    <br>- <strong style="color: red;">Primary Prescription:</strong> Guaifenesin, menthol throat lozenges, or liquid cough medicines with dextromethorphan.
-                `;
-            } else if (lowerUserInput.includes("skin rashes") || lowerUserInput.includes("itching") || lowerUserInput.includes("skin irritation")) {
-                botMessage.innerHTML = `
-                    <strong style="color: red;">For skin rashes and itching:</strong>
-                    <br>- <strong style="color: red;">Primary Prescription:</strong> Antihistamines, hydrocortisone cream, or antifungal creams and ointments.
-                    <br>- <strong style="color: red;">Secondary Prescription:</strong> Minimalist Salicylic Acid 02% Face Serum, 30 ml
-                `;
-            } else if (lowerUserInput.includes("nausea") || lowerUserInput.includes("vomiting")) {
-                botMessage.innerHTML = `
-                    <strong style="color: red;">For nausea and vomiting:</strong>
-                    <br>- <strong style="color: red;">Primary Prescription:</strong> Dimenhydrinate (Dramamine) or bismuth subsalicylate (Pepto-Bismol).
-                `;
-            } else if (lowerUserInput.includes("allergies") || lowerUserInput.includes("hay fever")) {
-                botMessage.innerHTML = `
-                    <strong style="color: red;">For allergies or hay fever:</strong>
-                    <br>- <strong style="color: red;">Primary Prescription:</strong> Cetirizine (Zyrtec) or loratadine (Claritin).
-                    <br>- <strong style="color: red;">Secondary Prescription:</strong> Trifluxy 10 mg Tablet 10's, Trazine-H 2.5 Tablet 10's, Trifluxy H Tablet 10'mg, SCHIZONIL H TABLE
-                `;
-            } else if (lowerUserInput.includes("diarrhea") || lowerUserInput.includes("upset stomach")) {
-                botMessage.innerHTML = `
-                    <strong style="color: red;">For diarrhea or an upset stomach:</strong>
-                    <br>- <strong style="color: red;">Primary Prescription:</strong> Loperamide (Imodium) or bismuth subsalicylate (Pepto-Bismol).
-                    <br>- <strong style="color: red;">Secondary Prescription:</strong> Sat Isabgol Powder, 50 gm, Softovac Bowel Regulator Powder, 250 gm, Looz Solution 210 ml
-                `;
-            } else if (lowerUserInput.includes("constipation") || lowerUserInput.includes("hard stools")) {
-                botMessage.innerHTML = `
-                    <strong style="color: red;">For constipation or hard stools:</strong>
-                    <br>- <strong style="color: red;">Primary Prescription:</strong> Psyllium (Metamucil) or docusate sodium (Colace).
-                    <br>- <strong style="color: red;">Secondary Prescription:</strong> Sat Isabgol Powder, 50 gm, Softovac Bowel Regulator Powder, 250 gm, Looz Solution 210 ml
-                `;
-            } else if (lowerUserInput.includes("heartburn") || lowerUserInput.includes("acid reflux")) {
-                botMessage.innerHTML = `
-                    <strong style="color: red;">For heartburn or acid reflux:</strong>
-                    <br>- <strong style="color: red;">Primary Prescription:</strong> Antacids like calcium carbonate (Tums) or ranitidine (Zantac).
-                    <br>- <strong style="color: red;">Secondary Prescription:</strong> Gaviscon Regular Oral Suspension, 150 ml, Digene Mint Tablet 15's, Acidose Tablet 10's, Rantac 150 Tablet 30's, ZINETAC 300MG TABLET, Apollo Pharmacy Antigas Mint Flavour Liquid, 170 ml, Omez Capsule 20's, Acid Cool DSR Tablet 10's, The Good Bug Smooth Move Synbiotic Supergut Powder for Constipation & Irregularity, 4 gm x 15 Sachets, Cremaffin Sugar-Free Mint Syrup 225 ml, Sat Isabgol Powder, 50 gm, Softovac Bowel Regulator Powder, 250 gm
-                `;
-            } else if (lowerUserInput.includes("insomnia") || lowerUserInput.includes("trouble sleeping")) {
-                botMessage.innerHTML = `
-                    <strong style="color: red;">For insomnia or trouble sleeping:</strong>
-                    <br>- <strong style="color: red;">Primary Prescription:</strong> Diphenhydramine (Benadryl) or melatonin supplements.
-                    <br>- <strong style="color: red;">Secondary Prescription:</strong> Simple Water Boost Skin Quench Sleeping Creme, 40 gm, Pure Sense Vitamin C Sleeping Mask, 50 gm, Neutrogena Hydro Boost 3D Sleeping Mask, 50 ml
-                `;
-            } else if (lowerUserInput.includes("cuts") || lowerUserInput.includes("minor wounds")) {
-                botMessage.innerHTML = `
-                    <strong style="color: red;">For cuts and minor wounds:</strong>
-                    <br>- <strong style="color: red;">Primary Prescription:</strong> Clean the area and use an antibiotic ointment like Neosporin.
-                    <br>- <strong style="color: red;">Secondary Prescription:</strong> Pro Pregawear Pre & Post Partum Minor Discharge Panty XXL, 5 Count, Minor Drape D 600, 1 Count, Minoril EX Syrup 60 ml, Dr. Morepen Burnol Cream, Minorab DSR Capsule 10's, Dr. Morepen Burnol Cream, 10mg, Minoril Syrup 60 ml, Minorab 20 mg Tablet 10's, Prowee Pregawear Pre & Post Partum Minor Discharge Panty Large, 5 Count
-                `;
-            } else if (lowerUserInput.includes("head congestion") || lowerUserInput.includes("blocked nose")) {
-                botMessage.innerHTML = `
-                    <strong style="color: red;">For head congestion or a blocked nose:</strong>
-                    <br>- <strong style="color: red;">Primary Prescription:</strong> Use pseudoephedrine (Sudafed) or phenylephrine (Sudafed PE).
-                    <br>- <strong style="color: red;">Secondary Prescription:</strong> 1. Suntuss CR Sugar-Free Congestion Relief Oral Liquid 100 ml, 2. Cofsils Ginger Lemon Flavour, 10
-                `;
-            } else if (lowerUserInput.includes("eye irritation") || lowerUserInput.includes("red eyes")) {
-                botMessage.innerHTML = `
-                    <strong style="color: red;">For eye irritation or red eyes:</strong>
-                    <br>- <strong style="color: red;">Primary Prescription:</strong> Use artificial tears or antihistamine eye drops like ketotifen (Zaditor).
-                    <br>- <strong style="color: red;">Secondary Prescription:</strong> Ivy Tears Eye Drops 10 ml, Lubrex Eye Drops 10 No
-                `;
-            } else if (lowerUserInput.includes("earache") || lowerUserInput.includes("ear pain")) {
-                botMessage.innerHTML = `
-                    <strong style="color: red;">For an earache or ear pain:</strong>
-                    <br>- <strong style="color: red;">Primary Prescription:</strong> Try ear drops with hydrogen peroxide or consult a healthcare professional.
-                    <br>- <strong style="color: red;">Secondary Prescription:</strong> Clearwax Ear Drops 10 ml, Otogesic Ear Drops 5 ml, Otogesic Ear Drops 10 ml, Ciplox Eye/Ear Drop 5 ml
-                `;
-            } else if (lowerUserInput.includes("muscle soreness") || lowerUserInput.includes("sore muscles")) {
-                botMessage.innerHTML = `
-                    <strong style="color: red;">For muscle soreness or sore muscles:</strong>
-                    <br>- <strong style="color: red;">Primary Prescription:</strong> Use topical analgesic creams or take ibuprofen (Advil) as directed.
-                    <br>- <strong style="color: red;">Secondary Prescription:</strong> [Your prescription here]
-                `;
-            } else if (lowerUserInput.includes("dental pain") || lowerUserInput.includes("toothache")) {
-                botMessage.innerHTML = `
-                    <strong style="color: red;">For dental pain or a toothache:</strong>
-                    <br>- <strong style="color: red;">Primary Prescription:</strong> Consult a dentist. Over-the-counter pain relievers may provide temporary relief.
-                    <br>- <strong style="color: red;">Secondary Prescription:</strong> [Your prescription here]
-                `;
-            } else if (lowerUserInput.includes("sprains") || lowerUserInput.includes("strains") || lowerUserInput.includes("injured muscles")) {
-                botMessage.innerHTML = `
-                    <strong style="color: red;">For sprains, strains, or injured muscles:</strong>
-                    <br>- <strong style="color: red;">Primary Prescription:</strong> Rest the affected area, apply ice, and consider ibuprofen (Advil) for pain and swelling.
-                    <br>- <strong style="color: red;">Secondary Prescription:</strong> [Your prescription here]
-                `;
-            } else if (lowerUserInput.includes("thank you") || lowerUserInput.includes("thanks") || lowerUserInput.includes("thankyou")) {
-                botMessage.innerText = "I'm happy to provide help for you.";
-            } else if (lowerUserInput.includes("hi") || lowerUserInput.includes("hello") || lowerUserInput.includes("hey") || lowerUserInput.includes("yo")) {
-                botMessage.innerText = "Hello! How can I assist you today?";
-            } else if (lowerUserInput.includes("severe pain") || lowerUserInput.includes("bleeding") || lowerUserInput.includes("excess bleeding") || lowerUserInput.includes("faint") || lowerUserInput.includes("fainted") || lowerUserInput.includes("broken bone")) {
-                botMessage.innerText = "Please seek immediate medical attention.";
-            }else if (lowerUserInput.includes("cancer") || lowerUserInput.includes("brain fever") || lowerUserInput.includes("coma")) {
-                botMessage.innerText = "Death is the only way. Rest in peace";
-            } else if (lowerUserInput.includes("bone")) {
-                botMessage.innerText = "Please take an X-ray at a nearby hospital.";
-            } else if (lowerUserInput.includes("say my name")) {
-                botMessage.innerText = "You're Heisenberg."; }
-            else {
-                botMessage.innerText = "I'm not sure how to respond to that.";
-            }
+        function hideDialog() {
+            document.getElementById('dialog-overlay').style.display = 'none';
+            document.getElementById('dialog-box').style.display = 'none';
+        }
 
-            chatbox.appendChild(botMessage);
+        const symptomButtons = document.querySelectorAll("#symptoms .symptom");
+        const submitButton = document.getElementById("submit-button");
 
-            document.getElementById("userInput").value = "";
-            chatbox.scrollTop = chatbox.scrollHeight;
+        const dialogOverlay = document.getElementById("dialog-overlay");
+        const dialogBox = document.getElementById("dialog-box");
+        const dialogMessage = document.getElementById("dialog-message");
+        const dialogOkButton = document.getElementById("dialog-ok-button");
+
+        function translatePage() {
+            const selectedLanguage = document.getElementById("language").value;
+            const translations = {
+                'en': {
+                    'page-title': 'Dharani',
+                    'symptoms-text': 'What symptoms are you facing?',
+                    'chosen-symptoms-title': 'Chosen Symptoms',
+                    'dialog-ok-button': 'OK',
+                    'fever': 'Fever',
+                    'cough': 'Cough',
+                    'runny-nose': 'Runny nose',
+                    'sore-throat': 'Sore throat',
+                    'headache': 'Headache',
+                    'body-aches': 'Body aches',
+                    'diarrhea': 'Diarrhea',
+                    'vomiting': 'Vomiting',
+                    'rash': 'Rash',
+                    'other': 'Other',
+                    'language-changed': 'Language Changed',
+                },
+                'hi': {
+                    'page-title': 'धरणी',
+                    'symptoms-text': 'आप किस प्रकार के लक्षण महसूस कर रहे हैं?',
+                    'chosen-symptoms-title': 'चययनित लक्षण',
+                    'dialog-ok-button': 'ठीक है',
+                    'fever': 'बुखार',
+                    'cough': 'खांसी',
+                    'runny-nose': 'बहता नाक',
+                    'sore-throat': 'गले में खराश',
+                    'headache': 'सिरदर्द',
+                    'body-aches': 'शरीर में दर्द',
+                    'diarrhea': 'दस्त',
+                    'vomiting': 'उल्टी',
+                    'rash': 'चकत्ते',
+                    'other': 'अन्य',
+                    'language-changed': 'भाषा बदल गई है',
+                    'submitted-successfully': 'सफलतापूर्वक प्रस्तुत किया गया!',
+                    'please-choose-option': 'कृपया एक विकल्प चुनें!',
+                },
+                'bn': {
+                    'page-title': 'ধরণী',
+                    'symptoms-text': 'আপনি কী লক্ষণ অনুভব করছেন?',
+                    'chosen-symptoms-title': 'চয়নিত লক্ষণ',
+                    'dialog-ok-button': 'ঠিক আছে',
+                    'fever': 'জ্বর',
+                    'cough': 'কাশি',
+                    'runny-nose': 'মুখ থেকে পানি পড়া',
+                    'sore-throat': 'গলা ব্যথা',
+                    'headache': 'মাথা ব্যথা',
+                    'body-aches': 'শরীরে ব্যথা',
+                    'diarrhea': 'পায়খানা',
+                    'vomiting': 'বমি',
+                    'rash': 'চুল্বুলি',
+                    'other': 'অন্যান্য',
+                    'language-changed': 'ভাষা পরিবর্তন হয়েছে',
+                },
+                'te': {
+                    'page-title': 'ధరణి',
+                    'symptoms-text': 'మీరు ఏ లక్షణాలను అనుభవిస్తున్నారు?',
+                    'chosen-symptoms-title': 'ఎంచుకోబడిన లక్షణాలు',
+                    'dialog-ok-button': 'అలాగే',
+                    'fever': 'జ్వరం',
+                    'cough': 'కాఫ్',
+                    'runny-nose': 'నలుపుతున్న ముక్కు',
+                    'sore-throat': 'గంట',
+                    'headache': 'తల నొప్పి',
+                    'body-aches': 'శరీరంలో నొప్పి',
+                    'diarrhea': 'అస్తమయిన వాటం',
+                    'vomiting': 'వాంతి',
+                    'rash': 'ర్యాష్',
+                    'other': 'ఇతర',
+                    'language-changed': 'భాష మారింది',
+                },
+                'mr': {
+                    'page-title': 'धरणी',
+                    'symptoms-text': 'आपण कुठल्या लक्षणांशी आपला सामना करत आहात?',
+                    'chosen-symptoms-title': 'निवडलेले लक्षण',
+                    'dialog-ok-button': 'ठीक आहे',
+                    'fever': 'ताप',
+                    'cough': 'खोकला',
+                    'runny-nose': 'त्रास',
+                    'sore-throat': 'टेढ़ा मुख',
+                    'headache': 'तिर्याचा दुखण',
+                    'body-aches': 'शरीरात दुखणे',
+                    'diarrhea': 'उधळलेले वयाचं',
+                    'vomiting': 'उलटी',
+                    'rash': 'कुंचले',
+                    'other': 'इतर',
+                    'language-changed': 'भाषा बदलली आहे',
+                },
+                'ta': {
+                    'page-title': 'தரணி',
+                    'symptoms-text': 'நீங்கள் என்ன அறிந்துகொள்ளுகிறீர்களா?',
+                    'chosen-symptoms-title': 'தேர்ந்தெடுக்கப்பட்ட அறிகுறிகள்',
+                    'dialog-ok-button': 'சரி',
+                    'fever': 'காய்ச்சல்',
+                    'cough': 'இருமல்',
+                    'runny-nose': 'மூக்கு மூச்சு',
+                    'sore-throat': 'தொண்டை வலி',
+                    'headache': 'தலைவலி',
+                    'body-aches': 'உடல் வலி',
+                    'diarrhea': 'வயிற்றுப்போக்கு',
+                    'vomiting': 'வாந்தி',
+                    'rash': 'தொல்லை',
+                    'other': 'மற்றவை',
+                    'language-changed': 'மொழி மாற்றப்பட்டது',
+                },
+                'ur': {
+                    'page-title': 'دھرنی',
+                    'symptoms-text': 'آپ کس قسم کے لاکھسن محسوس کر رہے ہیں؟',
+                    'chosen-symptoms-title': 'منتخب لاکھسن',
+                    'dialog-ok-button': 'ٹھیک ہے',
+                    'fever': 'بخار',
+                    'cough': 'کھانسی',
+                    'runny-nose': 'بہتا ہوا ناک',
+                    'sore-throat': 'دکھتا ہوا گلہ',
+                    'headache': 'سر درد',
+                    'body-aches': 'جسم میں درد',
+                    'diarrhea': 'دست',
+                    'vomiting': 'الٹی',
+                    'rash': 'خارش',
+                    'other': 'دیگر',
+                    'language-changed': 'زبان بدل گئی ہے',
+
+                },
+            };
+
+            const elementsToTranslate = document.querySelectorAll('[id]');
+            elementsToTranslate.forEach(element => {
+                const id = element.id;
+                if (translations[selectedLanguage] && translations[selectedLanguage][id]) {
+                    element.textContent = translations[selectedLanguage][id];
+                }
+            });
+        }
+
+        symptomButtons.forEach(button => {
+            button.addEventListener("click", function () {
+                button.classList.toggle("chosen");
+
+                const chosenSymptoms = document.querySelector("#chosen-symptoms ul");
+                const symptom = document.createElement("li");
+                symptom.textContent = button.textContent;
+
+                if (button.classList.contains("chosen")) {
+                    chosenSymptoms.appendChild(symptom);
+                } else {
+                    const existingSymptom = Array.from(chosenSymptoms.children).find(
+                        li => li.textContent === symptom.textContent
+                    );
+                    if (existingSymptom) {
+                        chosenSymptoms.removeChild(existingSymptom);
+                    }
+                }
+
+                if (chosenSymptoms.querySelectorAll("li").length === 0) {
+                    chosenSymptoms.innerHTML = "";
+                }
+            });
+        });
+
+        function submitSymptoms() {
+            const chosenSymptoms = document.querySelectorAll("#symptoms .chosen");
+
+            if (chosenSymptoms.length === 0) {
+                showDialog("Please choose an option!");
+            } else {
+                showDialog("Submitted successfully!");
+                symptomButtons.forEach(button => {
+                    button.disabled = true;
+                });
+                submitButton.disabled = true;
+            }
+        }
+
+        function showDialog(message) {
+            dialogMessage.textContent = message;
+            dialogOverlay.style.display = "block";
+            dialogBox.style.display = "block";
+        }
+
+        function hideDialog() {
+            dialogOverlay.style.display = "none";
+            dialogBox.style.display = "none";
         }
     </script>
 </body>
+
 </html>
