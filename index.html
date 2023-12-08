@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Dharani</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <h1 id="page-title" style="text-align: center;">Dharani</h1>
+
+    <div id="ai-assistant">
+        <button id="select-language-button" onclick="showLanguageDialog()">Select Language</button>
+
+        <p id="symptoms-text">What symptoms are you facing?</p>
+        <div id="symptoms">
+            <button type="button" class="symptom" id="fever">Fever</button>
+            <button type="button" class="symptom" id="cough">Cough</button>
+            <button type="button" class="symptom" id="runny-nose">Runny nose</button>
+            <button type="button" class="symptom" id="sore-throat">Sore throat</button>
+            <button type="button" class="symptom" id="headache">Headache</button>
+            <button type="button" class="symptom" id="body-aches">Body aches</button>
+            <button type="button" class="symptom" id="diarrhea">Diarrhea</button>
+            <button type="button" class="symptom" id="vomiting">Vomiting</button>
+            <button type="button" class="symptom" id="rash">Rash</button>
+            <button type="button" class="symptom" id="other">Other</button>
+        </div>
+
+        <div id="chosen-symptoms">
+            <h2 id="chosen-symptoms-title">Chosen Symptoms</h2>
+            <ul></ul>
+        </div>
+
+        <button id="submit-button" onclick="submitSymptoms()" id="submit-button">Submit</button>
+
+        <div id="dialog-overlay"></div>
+        <div id="dialog-box">
+            <div id="dialog-message">
+                <label for="language">Select Language:</label>
+                <select id="language" onchange="translatePage()">
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी</option>
+                    <option value="bn">বাংলা</option>
+                    <option value="te">తెలుగు</option>
+                    <option value="mr">मराठी</option>
+                    <option value="ta">தமிழ்</option>
+                    <option value="ur">اردو</option>
+ 
+                </select>
+            </div>
+            <button id="dialog-ok-button" onclick="hideDialog()">OK</button>
+        </div>
+    </div>
+
+    <script src="script.js"> </script>
+</body>
+
+</html>
